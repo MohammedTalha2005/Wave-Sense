@@ -1,0 +1,25 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# ESP-IDF Build Artifacts
+esp32/receiver/build/
+esp32/receiver/sdkconfig.old
+
+# OS & Editor Locks
+.~lock.*
+.DS_Store
+*.swp
+
+# Unlabeled 24-hour evaluation recordings
+data/eval_recordings/
+
+# Zip files & Large Archives
+*.zip

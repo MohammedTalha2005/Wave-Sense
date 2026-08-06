@@ -1,0 +1,3032 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaveSense (CNN+LSTM Deep Learning) Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    /*
+    WaveSense (CNN+LSTM Deep Learning) Platform
+    Enterprise dark research console. Structure, IDs and behaviour are
+    unchanged from the original build; only the visual system is new.
+  */
+    :root {
+      --bg: #090B10;
+      --surface: #11161E;
+      --raised: #171D27;
+      --raised-2: #1C2330;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-soft: rgba(255, 255, 255, 0.05);
+      --border-lit: rgba(255, 255, 255, 0.14);
+
+      --blue: #5B8CFF;
+      --emerald: #49D18A;
+      --gold: #F5B55E;
+      --danger: #FF6B6B;
+
+      --text: #FFFFFF;
+      --text-2: #B4BDC9;
+      --muted: #7B8794;
+
+      --blue-soft: rgba(91, 140, 255, 0.12);
+      --blue-line: rgba(91, 140, 255, 0.32);
+      --emerald-soft: rgba(73, 209, 138, 0.12);
+      --emerald-line: rgba(73, 209, 138, 0.30);
+      --gold-soft: rgba(245, 181, 94, 0.12);
+      --gold-line: rgba(245, 181, 94, 0.32);
+
+      --r-xl: 20px;
+      --r-lg: 18px;
+      --r-md: 12px;
+      --r-sm: 9px;
+
+      --sh-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 8px 24px -12px rgba(0, 0, 0, 0.8), 0 24px 60px -30px rgba(0, 0, 0, 0.9);
+      --sh-lift: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 14px 34px -14px rgba(0, 0, 0, 0.85), 0 30px 70px -34px rgba(0, 0, 0, 0.95);
+
+      --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+      --font: 'Inter', -apple-system, system-ui, sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+    }
+
+    body {
+      display: flex;
+      background-image:
+        radial-gradient(ellipse 1100px 620px at 8% -12%, rgba(91, 140, 255, 0.10), transparent 60%),
+        radial-gradient(ellipse 900px 560px at 100% 108%, rgba(73, 209, 138, 0.07), transparent 58%),
+        radial-gradient(ellipse 700px 400px at 62% 0%, rgba(245, 181, 94, 0.035), transparent 60%);
+    }
+
+    /* ambient floating light */
+    body::after {
+      content: '';
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      width: 620px;
+      height: 620px;
+      left: 22%;
+      top: 12%;
+      background: radial-gradient(circle, rgba(91, 140, 255, 0.055), transparent 65%);
+      filter: blur(20px);
+      animation: drift 26s ease-in-out infinite;
+    }
+
+    @keyframes drift {
+
+      0%,
+      100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        opacity: .8;
+      }
+
+      50% {
+        transform: translate3d(60px, -40px, 0) scale(1.12);
+        opacity: 1;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.09);
+      border-radius: 20px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    /* ══════════ SIDEBAR ══════════ */
+    .sidebar {
+      position: relative;
+      z-index: 3;
+      width: 264px;
+      flex-shrink: 0;
+      margin: 16px 0 16px 16px;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, rgba(23, 29, 39, 0.92), rgba(17, 22, 30, 0.92));
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--sh-card);
+    }
+
+    .sidebar-header {
+      padding: 24px 20px 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border-radius: 12px;
+      background: linear-gradient(160deg, rgba(91, 140, 255, 0.22), rgba(73, 209, 138, 0.10));
+      border: 1px solid rgba(91, 140, 255, 0.30);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 8px 22px -10px rgba(91, 140, 255, 0.7);
+    }
+
+    .brand-mark svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+    }
+
+    .brand-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      letter-spacing: -0.022em;
+    }
+
+    .brand-subtitle {
+      font-size: 10.5px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    .sidebar-nav {
+      padding: 8px 12px;
+      flex: 1;
+    }
+
+    .nav-section-title {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 12px 10px 10px;
+    }
+
+    .nav-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 12px;
+      border-radius: var(--r-md);
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: all .28s var(--ease);
+    }
+
+    .nav-item svg {
+      width: 17px;
+      height: 17px;
+      stroke-width: 1.7;
+      opacity: .8;
+      transition: all .28s var(--ease);
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--text);
+      transform: translateX(2px);
+    }
+
+    .nav-item.active {
+      color: var(--text);
+      background: linear-gradient(90deg, rgba(91, 140, 255, 0.20), rgba(91, 140, 255, 0.05));
+      border: 1px solid rgba(91, 140, 255, 0.26);
+      box-shadow: 0 0 24px -8px rgba(91, 140, 255, 0.6), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+      padding: 9px 11px;
+    }
+
+    .nav-item.active svg {
+      opacity: 1;
+      color: var(--blue);
+    }
+
+    .sidebar-footer {
+      padding: 12px 14px 16px;
+    }
+
+    .ledger-box {
+      background: rgba(9, 11, 16, 0.6);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--r-md);
+      padding: 13px 14px;
+    }
+
+    .ledger-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 11px;
+    }
+
+    .ledger-title {
+      font-size: 10px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .ledger-metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 11.5px;
+      color: var(--muted);
+      padding: 5px 0;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .ledger-metric:first-of-type {
+      border-top: none;
+    }
+
+    .ledger-metric span {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--emerald);
+      background: var(--emerald-soft);
+      border: 1px solid var(--emerald-line);
+      padding: 3px 9px 3px 7px;
+      border-radius: 30px;
+      transition: all .4s var(--ease);
+    }
+
+    .status-badge .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 0 0 rgba(73, 209, 138, 0.55);
+      animation: dotPulse 2.4s var(--ease) infinite;
+    }
+
+    .status-badge.offline {
+      color: var(--danger);
+      background: rgba(255, 107, 107, 0.10);
+      border-color: rgba(255, 107, 107, 0.30);
+    }
+
+    .status-badge.offline .status-dot {
+      background: var(--danger);
+      animation: none;
+    }
+
+    @keyframes dotPulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(73, 209, 138, 0.5);
+      }
+
+      70% {
+        box-shadow: 0 0 0 7px rgba(73, 209, 138, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(73, 209, 138, 0);
+      }
+    }
+
+    /* ══════════ MAIN ══════════ */
+    .main-wrapper {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 18px 28px 18px 26px;
+      background: rgba(17, 22, 30, 0.55);
+      backdrop-filter: blur(22px) saturate(140%);
+      border-bottom: 1px solid var(--border-soft);
+      flex-shrink: 0;
+    }
+
+    .page-title-group {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .page-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+      transition: opacity .3s var(--ease);
+    }
+
+    .page-title {
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -0.028em;
+    }
+
+    .mode-switch {
+      position: relative;
+      display: flex;
+      gap: 2px;
+      background: rgba(9, 11, 16, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 4px;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+    }
+
+    .mode-switch-thumb {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: var(--thumb-w);
+      height: calc(100% - 8px);
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(91, 140, 255, 0.26), rgba(91, 140, 255, 0.13));
+      border: 1px solid rgba(91, 140, 255, 0.32);
+      box-shadow: 0 0 22px -6px rgba(91, 140, 255, 0.75);
+      transition: transform .42s var(--ease);
+    }
+
+    .mode-btn {
+      position: relative;
+      z-index: 1;
+      width: var(--thumb-w);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      padding: 8px 0;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: color .3s var(--ease);
+    }
+
+    .mode-btn:hover {
+      color: var(--text-2);
+    }
+
+    .mode-btn.active {
+      color: var(--text);
+    }
+
+    .mode-btn .wick {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: .45;
+      transition: all .3s var(--ease);
+    }
+
+    .mode-btn.active .wick {
+      opacity: 1;
+      background: var(--blue);
+      box-shadow: 0 0 8px var(--blue);
+    }
+
+    .topbar-right {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-2);
+      letter-spacing: 0.02em;
+      background: rgba(9, 11, 16, 0.6);
+      border: 1px solid var(--border);
+      padding: 7px 13px;
+      border-radius: 30px;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+      flex-shrink: 0;
+    }
+
+    /* ══════════ PANELS ══════════ */
+    .tab-panel {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+      padding: 20px 28px;
+      box-sizing: border-box;
+      height: calc(100vh - 72px);
+    }
+
+    .tab-panel.active {
+      display: block;
+      animation: panelIn .45s var(--ease);
+    }
+
+    #panel-monitor.active {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 72px);
+      overflow: hidden;
+    }
+
+    #panel-monitor .viz-card {
+      flex: 1;
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      min-height: 0;
+    }
+
+    #panel-graphs.active {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr 1fr;
+      gap: 16px;
+      padding: 20px 28px;
+      height: calc(100vh - 72px);
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    #panel-graphs .graphs-status-bar {
+      grid-column: 1 / -1;
+      margin-bottom: 0;
+    }
+
+    #panel-graphs .card {
+      margin-bottom: 0;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    #panel-graphs .card-header {
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    #panel-graphs .chart-canvas-container {
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+      position: relative;
+    }
+
+    #panel-acquisition.active {
+      display: grid;
+      grid-template-columns: minmax(360px, 420px) 1fr;
+      gap: 20px;
+      align-items: stretch;
+      height: calc(100vh - 72px);
+      overflow: hidden;
+    }
+
+    @keyframes panelIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(28, 35, 48, 0.72), rgba(23, 29, 39, 0.72));
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      box-shadow: var(--sh-card);
+      padding: 24px;
+      margin-bottom: 24px;
+      transition: box-shadow .4s var(--ease), border-color .4s var(--ease), transform .4s var(--ease);
+    }
+
+    .card:hover {
+      border-color: var(--border-lit);
+      box-shadow: var(--sh-lift);
+    }
+
+    #panel-acquisition .card {
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    .card-subtitle {
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 450;
+    }
+
+    /* ══════════ HERO ══════════ */
+    .viz-card {
+      text-align: center;
+      padding: 18px 24px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .viz-card .card-header {
+      text-align: left;
+      margin-bottom: 10px;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+      justify-items: center;
+      padding: 0;
+      flex: 1;
+      min-height: 0;
+    }
+
+    @media (max-width: 1180px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+    }
+
+    /* glass room */
+    .presence-window {
+      position: relative;
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 16 / 9;
+      border-radius: var(--r-lg);
+      background: linear-gradient(170deg, rgba(91, 140, 255, 0.10), rgba(9, 11, 16, 0.85) 62%);
+      border: 1px solid rgba(91, 140, 255, 0.20);
+      overflow: hidden;
+      transition: background .5s var(--ease), border-color .5s var(--ease), box-shadow .5s var(--ease);
+      box-shadow: 0 0 44px -22px rgba(91, 140, 255, 0.85), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
+    }
+
+    .presence-window.is-present {
+      background: linear-gradient(170deg, rgba(245, 181, 94, 0.16), rgba(20, 14, 8, 0.88) 66%);
+      border-color: rgba(245, 181, 94, 0.34);
+      box-shadow: 0 0 70px -18px rgba(245, 181, 94, 0.55), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
+    }
+
+    /* perspective floor + walls */
+    .room-persp {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+      background-size: 44px 44px;
+      transform: perspective(620px) rotateX(58deg) scale(1.6) translateY(16%);
+      transform-origin: center bottom;
+      mask-image: linear-gradient(to top, #000 6%, transparent 78%);
+      opacity: .85;
+      transition: opacity .5s var(--ease);
+    }
+
+    .presence-window.is-present .room-persp {
+      opacity: 1;
+    }
+
+    .window-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 62% 58% at 50% 56%, rgba(91, 140, 255, 0.30), transparent 70%);
+      transition: background .5s var(--ease), opacity .5s var(--ease);
+      animation: breathe 5.5s ease-in-out infinite;
+    }
+
+    .presence-window.is-present .window-glow {
+      background: radial-gradient(ellipse 70% 66% at 50% 58%, rgba(245, 181, 94, 0.44), transparent 72%);
+      animation: none;
+    }
+
+    @keyframes breathe {
+
+      0%,
+      100% {
+        opacity: .62;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* glass pane reflection */
+    .window-mullion-v {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(118deg, transparent 30%, rgba(255, 255, 255, 0.07) 44%, rgba(255, 255, 255, 0.015) 52%, transparent 62%);
+    }
+
+    .window-mullion-h {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 42%;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent);
+    }
+
+    /* floating particles */
+    .room-dust {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .room-dust i {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(180, 205, 255, 0.55);
+      animation: float 9s ease-in-out infinite;
+      transition: background .5s var(--ease);
+    }
+
+    .presence-window.is-present .room-dust i {
+      background: rgba(245, 205, 150, 0.6);
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) scale(1);
+        opacity: .25;
+      }
+
+      50% {
+        transform: translateY(-22px) scale(1.3);
+        opacity: .8;
+      }
+    }
+
+    .presence-icon-wrap {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .presence-icon-wrap svg {
+      width: 42px;
+      height: 42px;
+      position: absolute;
+      transition: all .5s var(--ease);
+    }
+
+    .icon-absent {
+      color: var(--blue);
+      opacity: .85;
+      transform: scale(1);
+    }
+
+    .icon-present {
+      color: var(--gold);
+      opacity: 0;
+      transform: scale(.8);
+    }
+
+    .presence-window.is-present .icon-absent {
+      opacity: 0;
+      transform: scale(.8);
+    }
+
+    .presence-window.is-present .icon-present {
+      opacity: 1;
+      transform: scale(1);
+      filter: drop-shadow(0 0 14px rgba(245, 181, 94, 0.7));
+    }
+
+    /* wifi ripple */
+    .pulse-ring,
+    .pulse-ring::before,
+    .pulse-ring::after {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 96px;
+      height: 96px;
+      margin: -48px 0 0 -48px;
+      border-radius: 50%;
+      border: 1px solid rgba(245, 181, 94, 0.45);
+      animation: ripple 3.2s var(--ease) infinite;
+    }
+
+    .pulse-ring::before,
+    .pulse-ring::after {
+      content: '';
+      margin: -48px 0 0 -48px;
+    }
+
+    .pulse-ring::before {
+      animation-delay: 1.05s;
+    }
+
+    .pulse-ring::after {
+      animation-delay: 2.1s;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(.55);
+        opacity: .85;
+      }
+
+      100% {
+        transform: scale(2.5);
+        opacity: 0;
+      }
+    }
+
+    /* confidence ring */
+    .conf-ring-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .conf-ring {
+      position: relative;
+      width: 140px;
+      height: 140px;
+    }
+
+    .conf-ring svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .conf-ring .track {
+      stroke: rgba(255, 255, 255, 0.07);
+    }
+
+    .conf-ring .prog {
+      stroke: url(#confGrad);
+      stroke-linecap: round;
+      transition: stroke-dashoffset .6s var(--ease);
+      filter: drop-shadow(0 0 8px rgba(91, 140, 255, 0.55));
+    }
+
+    .conf-center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      grid-auto-rows: min-content;
+      align-content: center;
+    }
+
+    .conf-value {
+      font-family: var(--mono);
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .conf-value span {
+      font-size: 15px;
+      color: var(--muted);
+      margin-left: 3px;
+    }
+
+    .conf-caption {
+      font-size: 9px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .presence-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    .viz-state-block {
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+
+    .viz-state-label {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-top: 10px;
+      transition: color .5s var(--ease);
+    }
+
+    .viz-state-label.absent {
+      color: var(--text);
+    }
+
+    .viz-state-label.present {
+      color: var(--gold);
+    }
+
+    .viz-state-label.offline {
+      color: var(--danger);
+    }
+
+    .viz-conf-sub {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
+
+
+    /* status pill */
+    .status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 6px 13px 6px 10px;
+      border-radius: 30px;
+      transition: all .5s var(--ease);
+    }
+
+    .status-tag::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: dotPulse2 2.2s var(--ease) infinite;
+    }
+
+    @keyframes dotPulse2 {
+      0% {
+        box-shadow: 0 0 0 0 currentColor;
+        opacity: 1;
+      }
+
+      70% {
+        box-shadow: 0 0 0 8px transparent;
+        opacity: .75;
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 transparent;
+        opacity: 1;
+      }
+    }
+
+    .status-tag.absent {
+      color: var(--blue);
+      background: var(--blue-soft);
+      border: 1px solid var(--blue-line);
+    }
+
+    .status-tag.present {
+      color: var(--gold);
+      background: var(--gold-soft);
+      border: 1px solid var(--gold-line);
+      box-shadow: 0 0 26px -10px rgba(245, 181, 94, 0.9);
+    }
+
+    .status-tag.offline {
+      color: var(--danger);
+      background: rgba(255, 107, 107, 0.10);
+      border: 1px solid rgba(255, 107, 107, 0.30);
+    }
+
+    /* metric cards */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-soft);
+      text-align: left;
+    }
+
+    @media (max-width: 760px) {
+      .metrics-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .metric-card {
+      position: relative;
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+      border: 1px solid var(--border-soft);
+      border-radius: var(--r-lg);
+      padding: 11px 14px;
+      transition: transform .35s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease);
+    }
+
+    .metric-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-lit);
+      box-shadow: 0 16px 34px -20px rgba(0, 0, 0, 0.95);
+    }
+
+    .metric-ico {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 6px;
+      background: rgba(91, 140, 255, 0.10);
+      border: 1px solid rgba(91, 140, 255, 0.20);
+      color: var(--blue);
+    }
+
+    .metric-ico svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 1.8;
+    }
+
+    .metric-card-title {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .metric-card-value {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.028em;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-card-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      font-weight: 450;
+    }
+
+    /* graphs status bar */
+    .graphs-status-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding: 9px 16px;
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+      border: 1px solid var(--border-soft);
+      border-radius: var(--r-lg);
+      box-shadow: var(--sh-card);
+    }
+
+    .graphs-status-bar .status-tag {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 5px 11px 5px 8px;
+    }
+
+    .graphs-status-bar .mini-metric {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .graphs-status-bar .mini-metric b {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* charts */
+    .chart-canvas-container {
+      position: relative;
+      height: 210px;
+      width: 100%;
+    }
+
+    .chart-canvas-container canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .chart-tip {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -125%);
+      background: rgba(9, 11, 16, 0.94);
+      border: 1px solid var(--border-lit);
+      border-radius: 10px;
+      padding: 7px 11px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text);
+      white-space: nowrap;
+      transition: opacity .18s var(--ease);
+      box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 1);
+      z-index: 4;
+    }
+
+    .chart-legend {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .chart-legend i {
+      width: 16px;
+      height: 3px;
+      border-radius: 3px;
+      display: block;
+    }
+
+    /* ══════════ ACQUISITION ══════════ */
+    .acq-section-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    #panel-acquisition .acq-controls-card>div {
+      margin-bottom: 12px;
+    }
+
+    #panel-acquisition .acq-controls-card>div:last-child {
+      margin-bottom: 0;
+    }
+
+    .acq-controls-card {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .label-selector-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      background: rgba(9, 11, 16, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 3px;
+    }
+
+    .label-option-btn {
+      border: 1px solid transparent;
+      background: none;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 7px 0;
+      border-radius: 30px;
+      transition: all .3s var(--ease);
+    }
+
+    .label-option-btn:hover {
+      color: var(--text-2);
+    }
+
+    .label-option-btn.selected-absent {
+      color: var(--blue);
+      background: rgba(91, 140, 255, 0.16);
+      border-color: rgba(91, 140, 255, 0.30);
+      box-shadow: 0 0 22px -8px rgba(91, 140, 255, 0.85);
+    }
+
+    .label-option-btn.selected-present {
+      color: var(--gold);
+      background: rgba(245, 181, 94, 0.16);
+      border-color: rgba(245, 181, 94, 0.30);
+      box-shadow: 0 0 22px -8px rgba(245, 181, 94, 0.85);
+    }
+
+    .action-btns-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      font-family: var(--font);
+      cursor: pointer;
+      border-radius: 14px;
+      border: 1px solid var(--border-lit);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 13px;
+      transition: all .3s var(--ease);
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    /* premium circular record button */
+    .btn-record {
+      position: relative;
+      width: 118px;
+      height: 118px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: radial-gradient(circle at 50% 30%, rgba(91, 140, 255, 0.20), rgba(23, 29, 39, 0.95) 70%);
+      border: 1px solid rgba(91, 140, 255, 0.30);
+      box-shadow: 0 0 40px -16px rgba(91, 140, 255, 0.9), 0 1px 0 rgba(255, 255, 255, 0.07) inset;
+      padding: 0 12px;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .btn-record:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 56px -14px rgba(91, 140, 255, 1), 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+    }
+
+    .btn-record .rec-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 14px var(--blue);
+      transition: all .35s var(--ease);
+    }
+
+    .btn-record #recBtnText {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-2);
+    }
+
+    .btn-record.recording {
+      background: radial-gradient(circle at 50% 30%, rgba(255, 107, 107, 0.24), rgba(30, 16, 18, 0.95) 70%);
+      border-color: rgba(255, 107, 107, 0.42);
+      box-shadow: 0 0 60px -14px rgba(255, 107, 107, 0.95);
+      animation: recPulse 2s var(--ease) infinite;
+    }
+
+    .btn-record.recording .rec-dot {
+      background: var(--danger);
+      border-radius: 3px;
+      box-shadow: 0 0 16px var(--danger);
+    }
+
+    @keyframes recPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 60px -16px rgba(255, 107, 107, 0.75);
+      }
+
+      50% {
+        box-shadow: 0 0 74px -8px rgba(255, 107, 107, 1);
+      }
+    }
+
+    .rec-orbit {
+      position: absolute;
+      inset: -7px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .btn-record.recording .rec-orbit {
+      border-color: transparent;
+      border-top-color: rgba(255, 107, 107, 0.9);
+      border-right-color: rgba(255, 107, 107, 0.35);
+      animation: spin 1.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .rec-status-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(9, 11, 16, 0.66);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--r-md);
+      padding: 8px 12px;
+      transition: all .4s var(--ease);
+    }
+
+    .rec-status-strip .lbl {
+      font-size: 10px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .rec-status-strip .val {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rec-status-strip.live {
+      border-color: rgba(255, 107, 107, 0.35);
+      background: rgba(255, 107, 107, 0.07);
+    }
+
+    .rec-status-strip.live .lbl {
+      color: var(--danger);
+    }
+
+    .session-counts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .session-count-box {
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+      border: 1px solid var(--border-soft);
+      border-radius: var(--r-lg);
+      padding: 8px 12px;
+      transition: transform .35s var(--ease), border-color .35s var(--ease);
+    }
+
+    .session-count-box:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-lit);
+    }
+
+    .session-count-box .n {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.04em;
+    }
+
+    .session-count-box .lbl {
+      font-size: 10px;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .session-count-box.absent .n {
+      color: var(--blue);
+    }
+
+    .session-count-box.present .n {
+      color: var(--gold);
+    }
+
+    .btn-train {
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 12px;
+      background: linear-gradient(180deg, rgba(73, 209, 138, 0.24), rgba(73, 209, 138, 0.10));
+      border: 1px solid rgba(73, 209, 138, 0.34);
+      box-shadow: 0 12px 30px -16px rgba(73, 209, 138, 0.95), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
+      letter-spacing: -0.01em;
+    }
+
+    .btn-train:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 40px -16px rgba(73, 209, 138, 1), 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+    }
+
+    /* log */
+    .log-card {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .console-log-box {
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
+      background: rgba(6, 8, 12, 0.82);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--r-lg);
+      padding: 14px 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .log-entry {
+      display: flex;
+      gap: 12px;
+      line-height: 1.6;
+      padding: 6px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.035);
+      animation: logIn .35s var(--ease);
+    }
+
+    .log-entry:first-child {
+      border-top: none;
+    }
+
+    @keyframes logIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .log-time {
+      color: var(--muted);
+      opacity: .8;
+      flex-shrink: 0;
+    }
+
+    .log-tag-info {
+      color: var(--blue);
+      font-weight: 600;
+      flex-shrink: 0;
+      width: 62px;
+    }
+
+    .log-tag-success {
+      color: var(--emerald);
+      font-weight: 600;
+      flex-shrink: 0;
+      width: 62px;
+    }
+
+    .log-tag-warn {
+      color: var(--gold);
+      font-weight: 600;
+      flex-shrink: 0;
+      width: 62px;
+    }
+
+    .log-text {
+      color: var(--text-2);
+    }
+
+    /* Restricted Hours Security Alert System */
+    .alert-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-radius: var(--r-md);
+      background: linear-gradient(90deg, rgba(255, 77, 77, 0.25), rgba(255, 153, 0, 0.2));
+      border: 1px solid rgba(255, 77, 77, 0.6);
+      box-shadow: 0 0 24px rgba(255, 77, 77, 0.4);
+      margin-bottom: 16px;
+      animation: alertPulse 1.2s infinite alternate;
+    }
+    @keyframes alertPulse {
+      from { box-shadow: 0 0 12px rgba(255, 77, 77, 0.3); border-color: rgba(255, 77, 77, 0.5); }
+      to { box-shadow: 0 0 32px rgba(255, 77, 77, 0.8); border-color: rgba(255, 77, 77, 1); }
+    }
+    .alert-banner .alert-icon { font-size: 22px; }
+    .alert-banner .alert-text { font-size: 13px; font-weight: 600; color: #FFD2D2; letter-spacing: 0.02em; }
+
+    .alert-config-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(13, 16, 23, 0.6);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--r-md);
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .alert-config-bar label { font-size: 12px; color: var(--muted); font-weight: 500; display: flex; align-items: center; gap: 8px; }
+    .alert-config-bar input[type="time"] {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border-soft);
+      color: #FFF;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .alert-config-bar input[type="checkbox"] { accent-color: var(--blue); cursor: pointer; transform: scale(1.1); }
+
+    @media (max-width: 1024px) {
+      .sidebar {
+        display: none;
+      }
+
+      #panel-acquisition.active {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a href="#" class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5B8CFF" stroke-width="1.6" stroke-linecap="round">
+            <path d="M4 15c2.4-6 13.6-6 16 0" opacity=".45" />
+            <path d="M7 16.5c1.8-4 7.2-4 9 0" opacity=".75" />
+            <circle cx="12" cy="8.2" r="2.1" fill="#5B8CFF" stroke="none" />
+            <path d="M12 10.3v3.4" opacity=".6" />
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">WaveSense</div>
+          <div class="brand-subtitle">Ambient Intelligence</div>
+        </div>
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Rooms</div>
+      <a href="#" class="nav-item active" id="navPresence" onclick="event.preventDefault(); setTab('monitor')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" />
+          <path d="M9.5 21v-6h5v6" />
+        </svg>
+        <span>Presence</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:14px;">Security</div>
+      <a href="#" class="nav-item" id="navAlerts" onclick="event.preventDefault(); setTab('alerts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>Presence Alerts</span>
+      </a>
+
+      <div class="nav-section-title" style="margin-top:14px;">Analytics</div>
+      <a href="#" class="nav-item" id="navReports" onclick="event.preventDefault(); setTab('reports')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span>Excel Reports</span>
+      </a>
+
+      <a href="#" class="nav-item" id="navGraphs" onclick="event.preventDefault(); setTab('graphs')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19V5" />
+          <path d="M4 19h16" />
+          <path d="m7 15 3.5-4 3 2.5L20 7" />
+        </svg>
+        <span>Graphs</span>
+      </a>
+    </nav>
+
+
+    <div class="sidebar-footer">
+      <div class="ledger-box">
+        <div class="ledger-header">
+          <span class="ledger-title">Receiver</span>
+          <div class="status-badge offline" id="statusBadge">
+            <div class="status-dot"></div>
+            <span id="statusBadgeText">Disconnected</span>
+          </div>
+        </div>
+        <div class="ledger-metric">Signal <span id="valRSSI">Offline</span></div>
+        <div class="ledger-metric">Rate <span id="valPPS">0.0 Hz</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Wrapper -->
+  <div class="main-wrapper">
+    <header class="topbar">
+      <div class="page-title-group">
+        <div class="page-eyebrow">Live feed</div>
+        <div class="page-title" id="pageTitle">CNN+BiLSTM Presence Sensor </div>
+      </div>
+
+      <div class="mode-switch" id="modeSwitch" style="--thumb-w: 138px;">
+        <div class="mode-switch-thumb" id="modeThumb"></div>
+        <button class="mode-btn active" id="btnTabMonitor" onclick="setTab('monitor')">
+          <span class="wick"></span> Monitor
+        </button>
+        <button class="mode-btn" id="btnTabAcquisition" onclick="setTab('acquisition')">
+          <span class="wick"></span> Teach it
+        </button>
+      </div>
+
+      <div class="topbar-right" id="topbarClock"></div>
+    </header>
+
+    <!-- ══════════════ TAB 1 — Monitor ══════════════ -->
+    <div class="tab-panel active" id="panel-monitor">
+
+      <!-- Restricted Hours Security Alert Banner -->
+      <div class="alert-banner" id="restrictedAlertBanner" style="display:none;">
+        <div class="alert-icon">🚨</div>
+        <div class="alert-text" id="alertBannerText">RESTRICTED HOURS ALERT: Presence detected during break time!</div>
+      </div>
+
+      <!-- Presence -->
+      <div class="card viz-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-title">Room Presence</span>
+            <span class="card-subtitle">Live inference · Ambient WiFi channel state</span>
+          </div>
+          <span class="status-tag absent" id="liveTag">Empty</span>
+        </div>
+
+        <div class="hero-inner">
+          <div class="presence-col">
+            <div class="presence-window" id="presenceWindow">
+              <div class="room-persp"></div>
+              <div class="window-glow"></div>
+
+              <div class="window-mullion-v"></div>
+              <div class="window-mullion-h"></div>
+              <div class="room-dust">
+                <i style="left:18%; top:62%; animation-delay:0s"></i>
+                <i style="left:34%; top:44%; animation-delay:1.4s"></i>
+                <i style="left:57%; top:70%; animation-delay:2.7s"></i>
+                <i style="left:74%; top:38%; animation-delay:3.9s"></i>
+                <i style="left:86%; top:60%; animation-delay:5.1s"></i>
+              </div>
+              <div class="presence-icon-wrap">
+                <div class="pulse-ring" id="pulseRing" style="display:none;"></div>
+                <svg class="icon-present" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="8" r="3.4" />
+                  <path d="M5.5 20c0-4 3-7 6.5-7s6.5 3 6.5 7" />
+                </svg>
+                <svg class="icon-absent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 15c2.4-6 13.6-6 16 0" opacity=".5" />
+                  <path d="M7.5 16.6c1.7-3.8 7.3-3.8 9 0" opacity=".8" />
+                  <circle cx="12" cy="8.4" r="1.6" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="viz-state-block">
+              <div class="viz-state-label absent" id="stateLabel">The room is quiet</div>
+              <div class="viz-conf-sub" id="confSubLabel">Confidence —%</div>
+            </div>
+          </div>
+
+
+
+          <div class="conf-ring-wrap">
+            <div class="conf-ring">
+              <svg viewBox="0 0 120 120">
+                <defs>
+                  <linearGradient id="confGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#5B8CFF" />
+                    <stop offset="55%" stop-color="#49D18A" />
+                    <stop offset="100%" stop-color="#F5B55E" />
+                  </linearGradient>
+                </defs>
+                <circle class="track" cx="60" cy="60" r="52" fill="none" stroke-width="9" />
+                <circle class="prog" id="confRingProg" cx="60" cy="60" r="52" fill="none" stroke-width="9"
+                  stroke-dasharray="326.7" stroke-dashoffset="326.7" />
+              </svg>
+              <div class="conf-center">
+                <div class="conf-value" id="confRingValue">—<span>%</span></div>
+                <div class="conf-caption">Model Confidence</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="metric-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M3 12h4l3 8 4-16 3 8h4" />
+              </svg></div>
+            <div class="metric-card-title">Status</div>
+            <div class="metric-card-value" id="metStatus">Empty</div>
+            <div class="metric-card-hint">Current classifier output</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="M12 7.5V12l3 1.8" />
+              </svg></div>
+            <div class="metric-card-title">Last change</div>
+            <div class="metric-card-value" id="metTime">--:--:--</div>
+            <div class="metric-card-hint">Most recent state transition</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M12 3.5 20 7v5.5c0 4.4-3.3 7-8 8-4.7-1-8-3.6-8-8V7z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg></div>
+            <div class="metric-card-title">Confidence</div>
+            <div class="metric-card-value" id="metConf">--%</div>
+            <div class="metric-card-hint">Probability of the reported class</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ TAB — Graphs ══════════════ -->
+    <div class="tab-panel" id="panel-graphs">
+
+      <!-- Live status strip -->
+      <div class="graphs-status-bar">
+        <span class="status-tag absent" id="graphsStatusTag">Empty</span>
+        <div class="mini-metric">Confidence <b id="graphsStatusConf">--%</b></div>
+      </div>
+
+      <!-- Signal Chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-title">Signal amplitude</span>
+            <span class="card-subtitle">RSSI, last 50s</span>
+          </div>
+          <span class="chart-legend"><i style="background:linear-gradient(90deg,#F5B55E,#FFD9A0)"></i> RSSI (dBm)</span>
+        </div>
+        <div class="chart-canvas-container">
+          <canvas id="csiSignalChart"></canvas>
+          <div class="chart-tip" id="tip-csiSignalChart"></div>
+        </div>
+      </div>
+
+      <!-- Confidence Trend -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-title">Confidence over time</span>
+            <span class="card-subtitle">model certainty</span>
+          </div>
+          <span class="chart-legend"><i style="background:linear-gradient(90deg,#5B8CFF,#49D18A)"></i> Confidence
+            (%)</span>
+        </div>
+        <div class="chart-canvas-container">
+          <canvas id="confidenceChart"></canvas>
+          <div class="chart-tip" id="tip-confidenceChart"></div>
+        </div>
+      </div>
+
+      <!-- CSI Subcarrier Amp -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-title">CSI Subcarrier Amp</span>
+            <span class="card-subtitle">Moving Average CSI Amplitude</span>
+          </div>
+          <span class="chart-legend"><i style="background:linear-gradient(90deg,#5B8CFF,#49D18A)"></i> Amplitude</span>
+        </div>
+        <div class="chart-canvas-container">
+          <canvas id="csiSubcarrierAmpChart"></canvas>
+          <div class="chart-tip" id="tip-csiSubcarrierAmpChart"></div>
+        </div>
+      </div>
+
+      <!-- CSI Subcarrier Noise / Std Dev -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-title">CSI Subcarrier Noise / Std Dev</span>
+            <span class="card-subtitle">Subcarrier standard deviation over time</span>
+          </div>
+          <span class="chart-legend"><i style="background:linear-gradient(90deg,#F5B55E,#FFD9A0)"></i> Std Dev</span>
+        </div>
+        <div class="chart-canvas-container">
+          <canvas id="csiSubcarrierStdDevChart"></canvas>
+          <div class="chart-tip" id="tip-csiSubcarrierStdDevChart"></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════ TAB 2 — Acquisition ══════════════ -->
+    <div class="tab-panel" id="panel-acquisition">
+
+      <!-- Controls column -->
+      <div class="card acq-controls-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-title">Teach the model</span>
+            <span class="card-subtitle">Labelled dataset acquisition</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="acq-section-label">What's true right now</div>
+          <div class="label-selector-container">
+            <button class="label-option-btn selected-absent" id="btnLabelAbsent" onclick="selectLabel(0)">Room's
+              empty</button>
+            <button class="label-option-btn" id="btnLabelPresent" onclick="selectLabel(1)">Someone's home</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="acq-section-label">Capture a sample</div>
+          <div class="action-btns-row">
+            <button class="btn btn-record" id="btnRecord" onclick="toggleRecording()">
+              <span class="rec-orbit"></span>
+              <span class="rec-dot" id="recDotIcon"></span> <span id="recBtnText">Record the empty room</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="rec-status-strip" id="recStatusStrip">
+          <span class="lbl">Elapsed</span>
+          <span class="val" id="recTimerVal">00:00</span>
+        </div>
+
+        <div>
+          <div class="acq-section-label">This session</div>
+          <div class="session-counts">
+            <div class="session-count-box absent">
+              <div class="n" id="countAbsent">0</div>
+              <div class="lbl">Empty takes</div>
+            </div>
+            <div class="session-count-box present">
+              <div class="n" id="countPresent">0</div>
+              <div class="lbl">Present takes</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: auto;">
+          <div class="acq-section-label">Model</div>
+          <div class="action-btns-row">
+            <button class="btn btn-train" id="btnTrain" onclick="triggerTraining()">
+              Retrain on this session
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity log column -->
+      <div class="card log-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-title">Activity log</span>
+            <span class="card-subtitle">Console stream</span>
+          </div>
+        </div>
+        <div class="console-log-box" id="consoleLogBox">
+          <div class="log-entry">
+            <span class="log-time">[Init]</span>
+            <span class="log-tag-info">SYSTEM</span>
+            <span class="log-text">Dashboard ready. Waiting on the sensor stream.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ TAB 4 — Presence Alerts Manager ══════════════ -->
+    <div class="tab-panel" id="panel-alerts">
+      <div class="card viz-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-title">🚨 Restricted Hours Presence Alert Manager</span>
+            <span class="card-subtitle">Enforce Room Occupancy Policies & Scheduled Break Enforcement</span>
+          </div>
+        </div>
+
+        <div style="padding: 20px;">
+          <!-- Restricted Hours Alert Active Status Banner -->
+          <div class="alert-banner" id="restrictedAlertBannerTab" style="display:none; margin-bottom: 20px;">
+            <div class="alert-icon">🚨</div>
+            <div class="alert-text" id="alertBannerTextTab">RESTRICTED HOURS ALERT: Presence detected during break period!</div>
+          </div>
+
+          <!-- Configuration Card -->
+          <div class="card" style="background: rgba(13, 16, 23, 0.7); border: 1px solid var(--border-soft); padding: 20px; border-radius: var(--r-md); margin-bottom: 24px;">
+            <h3 style="font-size: 15px; color: #FFF; margin-bottom: 16px;">Schedule & Alert Settings</h3>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <label style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--text);">
+                <input type="checkbox" id="alertEnabledTab" onchange="syncAlertConfig('enabled')" checked style="transform: scale(1.2);">
+                <b>Enable Restricted Hours Security Alert Engine</b>
+              </label>
+
+              <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                <div>
+                  <div style="font-size: 12px; color: var(--muted); margin-bottom: 6px;">Start Time (Break / Restricted Hours):</div>
+                  <input type="time" id="alertStartTimeTab" value="12:00" onchange="syncAlertConfig('start')" style="background: rgba(0,0,0,0.5); border: 1px solid var(--border-soft); color: #FFF; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-family: var(--mono);">
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: var(--muted); margin-bottom: 6px;">End Time (Break / Restricted Hours):</div>
+                  <input type="time" id="alertEndTimeTab" value="12:30" onchange="syncAlertConfig('end')" style="background: rgba(0,0,0,0.5); border: 1px solid var(--border-soft); color: #FFF; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-family: var(--mono);">
+                </div>
+              </div>
+              <div style="font-size: 12px; color: var(--muted);">Supports both 12-hour and 24-hour schedules. Active monitoring triggers real-time alerts whenever room presence is detected during this window.</div>
+            </div>
+          </div>
+
+          <!-- Alert History Log -->
+          <div class="card" style="background: rgba(13, 16, 23, 0.7); border: 1px solid var(--border-soft); padding: 20px; border-radius: var(--r-md);">
+            <h3 style="font-size: 15px; color: #FFF; margin-bottom: 12px;">Alert History Log</h3>
+            <div class="console-log-box" id="alertHistoryLogBox" style="height: 220px;">
+              <div class="log-entry">
+                <span class="log-time">[System]</span>
+                <span class="log-tag-info">SECURITY</span>
+                <span class="log-text">Restricted hours monitoring engine active.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ TAB 5 — 24/7 Daily Excel Reports ══════════════ -->
+    <div class="tab-panel" id="panel-reports">
+      <div class="card viz-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="card-title">📊 24/7 Daily Excel & Analytics Reports</span>
+            <span class="card-subtitle">Automated Continuous Occupancy Summaries & Download Center</span>
+          </div>
+        </div>
+
+        <div style="padding: 20px;">
+          <!-- Daily Action Controls -->
+          <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+            <button class="btn" style="padding: 10px 18px; font-size: 13px; background: rgba(91,140,255,0.25); border: 1px solid rgba(91,140,255,0.6);" onclick="generateTodaySummary()">
+              ⚡ Generate Today's 24-Hr Excel Summary
+            </button>
+            <button class="btn" style="padding: 10px 18px; font-size: 13px; background: rgba(73,209,138,0.25); border: 1px solid rgba(73,209,138,0.6);" onclick="downloadLatestReport()">
+              📥 Download Latest Daily Excel Report
+            </button>
+            <button class="btn" style="padding: 10px 18px; font-size: 13px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-soft);" onclick="fetchReportsList()">
+              🔄 Refresh Reports List
+            </button>
+          </div>
+
+          <!-- Reports List Table -->
+          <div class="card" style="background: rgba(13, 16, 23, 0.7); border: 1px solid var(--border-soft); padding: 20px; border-radius: var(--r-md);">
+            <h3 style="font-size: 15px; color: #FFF; margin-bottom: 14px;">Available Daily Reports</h3>
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: var(--text);">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border-soft); text-align: left; color: var(--muted);">
+                    <th style="padding: 10px;">Report Filename</th>
+                    <th style="padding: 10px;">Report Type</th>
+                    <th style="padding: 10px;">File Size</th>
+                    <th style="padding: 10px;">Last Modified</th>
+                    <th style="padding: 10px; text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="reportsTableBody">
+                  <tr>
+                    <td colspan="5" style="padding: 16px; text-align: center; color: var(--muted);">Loading available reports…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ws = null;
+    let isRecording = false;
+    let currentLabel = 0; // 0 = Absent, 1 = Present
+    let lastState = null;
+    let recTimerInterval = null;
+    let recStartTime = null;
+    let sessionCounts = { 0: 0, 1: 0 };
+
+    const MAX_POINTS = 50;
+    const csiRssiHistory = Array(MAX_POINTS).fill(-65);
+    const confidenceHistory = Array(MAX_POINTS).fill(0);
+    const csiMeanAmpHistory = Array(MAX_POINTS).fill(12);
+    const csiMovingAvgHistory = Array(MAX_POINTS).fill(12);
+    const csiStdDevHistory = Array(MAX_POINTS).fill(6);
+
+    let packetTimestamps = [];
+    let lastCsiTimestamp = 0;
+    let latestCsiAmps = Array(64).fill(0);
+    let latestCsiPhases = Array(64).fill(0);
+
+    // ── Clock ──
+    function tickClock() {
+      const el = document.getElementById('topbarClock');
+      if (el) el.textContent = new Date().toLocaleTimeString();
+    }
+    setInterval(tickClock, 1000);
+    tickClock();
+
+    // ── Tab switching ──
+    function setTab(tab) {
+      const isMonitor = tab === 'monitor';
+      const isGraphs = tab === 'graphs';
+      const isAcq = tab === 'acquisition';
+      const isAlerts = tab === 'alerts';
+      const isReports = tab === 'reports';
+
+      document.getElementById('panel-monitor').classList.toggle('active', isMonitor);
+      document.getElementById('panel-acquisition').classList.toggle('active', isAcq);
+      document.getElementById('panel-graphs').classList.toggle('active', isGraphs);
+      document.getElementById('panel-alerts').classList.toggle('active', isAlerts);
+      document.getElementById('panel-reports').classList.toggle('active', isReports);
+
+      document.getElementById('btnTabMonitor').classList.toggle('active', isMonitor || isGraphs || isAlerts || isReports);
+      document.getElementById('btnTabAcquisition').classList.toggle('active', isAcq);
+      document.getElementById('modeThumb').style.transform = isAcq ? 'translateX(138px)' : 'translateX(0)';
+
+      const navP = document.getElementById('navPresence');
+      const navA = document.getElementById('navAlerts');
+      const navR = document.getElementById('navReports');
+      const navG = document.getElementById('navGraphs');
+      if (navP) navP.classList.toggle('active', isMonitor);
+      if (navA) navA.classList.toggle('active', isAlerts);
+      if (navR) navR.classList.toggle('active', isReports);
+      if (navG) navG.classList.toggle('active', isGraphs);
+
+      let eyebrow = 'Live feed';
+      let title = 'CNN+BiLSTM Presence Sensor';
+      if (isAcq) { eyebrow = 'Training data'; title = 'Teach WaveSense the difference'; }
+      else if (isGraphs) { eyebrow = 'Telemetry'; title = 'Signal & confidence trends'; }
+      else if (isAlerts) { eyebrow = 'Security Management'; title = 'Restricted Hours Presence Alerts'; }
+      else if (isReports) { eyebrow = 'Continuous Analytics'; title = '24/7 Daily Excel Reports Center'; fetchReportsList(); }
+
+      document.querySelector('.page-eyebrow').textContent = eyebrow;
+      document.getElementById('pageTitle').textContent = title;
+      if (isGraphs) requestAnimationFrame(renderCharts);
+    }
+
+
+    // ── Logging Utility ──
+    function appendLog(msg, type = 'info') {
+      const box = document.getElementById('consoleLogBox');
+      const timeStr = new Date().toLocaleTimeString();
+
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+
+      let tagClass = 'log-tag-info';
+      if (type === 'success') tagClass = 'log-tag-success';
+      if (type === 'warn') tagClass = 'log-tag-warn';
+
+      entry.innerHTML = `
+      <span class="log-time">[${timeStr}]</span>
+      <span class="${tagClass}">${type.toUpperCase()}</span>
+      <span class="log-text">${msg}</span>
+    `;
+
+      box.appendChild(entry);
+      box.scrollTop = box.scrollHeight;
+
+      while (box.children.length > 50) {
+        box.removeChild(box.firstChild);
+      }
+    }
+
+    // ── Label Selection ──
+    function selectLabel(lbl) {
+      if (isRecording) return;
+      currentLabel = lbl;
+      const btnAbsent = document.getElementById('btnLabelAbsent');
+      const btnPresent = document.getElementById('btnLabelPresent');
+      const recText = document.getElementById('recBtnText');
+
+      if (lbl === 0) {
+        btnAbsent.className = 'label-option-btn selected-absent';
+        btnPresent.className = 'label-option-btn';
+        recText.textContent = 'Record the empty room';
+        appendLog('Target set to Empty (0)', 'info');
+      } else {
+        btnAbsent.className = 'label-option-btn';
+        btnPresent.className = 'label-option-btn selected-present';
+        recText.textContent = 'Record someone home';
+        appendLog('Target set to Present (1)', 'info');
+      }
+    }
+
+    function formatElapsed(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+      const s = String(totalSec % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    // ── Recording Control ──
+    async function toggleRecording() {
+      const btnRec = document.getElementById('btnRecord');
+      const btnText = document.getElementById('recBtnText');
+      const btnAbsent = document.getElementById('btnLabelAbsent');
+      const btnPresent = document.getElementById('btnLabelPresent');
+      const strip = document.getElementById('recStatusStrip');
+      const timerVal = document.getElementById('recTimerVal');
+
+      const labelName = currentLabel === 0 ? 'Empty (0)' : 'Present (1)';
+
+      if (!isRecording) {
+        appendLog(`Starting a recording for ${labelName}…`, 'info');
+        const res = await fetch('/api/record/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ label: currentLabel })
+        });
+
+        if (res.ok) {
+          isRecording = true;
+          btnRec.className = 'btn btn-record recording';
+          btnText.textContent = `Stop recording (${labelName})`;
+          btnAbsent.style.opacity = '0.5';
+          btnPresent.style.opacity = '0.5';
+          strip.classList.add('live');
+          strip.querySelector('.lbl').textContent = 'Recording';
+
+          recStartTime = Date.now();
+          timerVal.textContent = '00:00';
+          recTimerInterval = setInterval(() => {
+            timerVal.textContent = formatElapsed(Date.now() - recStartTime);
+          }, 1000);
+
+          appendLog(`Recording started for ${labelName}`, 'success');
+        } else {
+          appendLog('Could not start recording', 'warn');
+        }
+      } else {
+        appendLog('Stopping recording…', 'info');
+        const res = await fetch('/api/record/stop', { method: 'POST' });
+        if (res.ok) {
+          isRecording = false;
+          btnRec.className = 'btn btn-record';
+          btnText.textContent = `Record ${currentLabel === 0 ? 'the empty room' : 'someone home'}`;
+          btnAbsent.style.opacity = '1';
+          btnPresent.style.opacity = '1';
+          strip.classList.remove('live');
+          strip.querySelector('.lbl').textContent = 'Elapsed';
+
+          clearInterval(recTimerInterval);
+          timerVal.textContent = '00:00';
+
+          sessionCounts[currentLabel]++;
+          document.getElementById(currentLabel === 0 ? 'countAbsent' : 'countPresent').textContent = sessionCounts[currentLabel];
+
+          appendLog(`Recording stopped. Sample saved.`, 'success');
+        } else {
+          appendLog('Could not stop recording', 'warn');
+        }
+      }
+    }
+
+    // ── Training Dispatch ──
+    async function triggerTraining() {
+      const btn = document.getElementById('btnTrain');
+      btn.disabled = true;
+      btn.textContent = 'Training…';
+      appendLog('Dispatched classifier training session…', 'info');
+
+      const res = await fetch('/api/train', { method: 'POST' });
+      if (res.ok) {
+        appendLog('Training in progress.', 'info');
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.textContent = 'Retrain on this session';
+          appendLog('Model retrained and hot-swapped.', 'success');
+        }, 4000);
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Retrain on this session';
+        appendLog('Training request failed.', 'warn');
+      }
+    }
+
+    // ── WebSocket Connection ──
+    function initWebSocket() {
+      const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+      ws = new WebSocket(`${protocol}://${location.host}/ws`);
+
+      ws.onopen = () => {
+        appendLog('Dashboard backend connected', 'success');
+      };
+
+      ws.onclose = () => {
+        document.getElementById('statusBadge').className = 'status-badge offline';
+        document.getElementById('statusBadgeText').textContent = 'Disconnected';
+        appendLog('Backend connection lost. Reconnecting…', 'warn');
+        setTimeout(initWebSocket, 3000);
+      };
+
+      ws.onmessage = (evt) => {
+        const data = JSON.parse(evt.data);
+        if (data.type === 'prediction') handlePrediction(data);
+        if (data.type === 'csi_update') handleTelemetry(data);
+      };
+    }
+
+    // ── Confidence ring ──
+    const RING_CIRC = 2 * Math.PI * 52;
+    let ringShown = 0;
+    let ringTarget = 0;
+    let ringRAF = null;
+
+    function setConfidenceRing(pct) {
+      ringTarget = Math.max(0, Math.min(100, pct));
+      if (ringRAF) return;
+      const step = () => {
+        const diff = ringTarget - ringShown;
+        if (Math.abs(diff) < 0.4) { ringShown = ringTarget; ringRAF = null; }
+        else { ringShown += diff * 0.18; ringRAF = requestAnimationFrame(step); }
+        const prog = document.getElementById('confRingProg');
+        const val = document.getElementById('confRingValue');
+        if (prog) prog.setAttribute('stroke-dashoffset', String(RING_CIRC * (1 - ringShown / 100)));
+        if (val) val.innerHTML = `${Math.round(ringShown)}<span>%</span>`;
+      };
+      ringRAF = requestAnimationFrame(step);
+    }
+
+    // ── Data Handlers ──
+    function setOfflinePresenceUI() {
+      const tag = document.getElementById('liveTag');
+      const graphsTag = document.getElementById('graphsStatusTag');
+      const win = document.getElementById('presenceWindow');
+      const pulse = document.getElementById('pulseRing');
+      const label = document.getElementById('stateLabel');
+      const confSub = document.getElementById('confSubLabel');
+
+      if (tag) { tag.className = 'status-tag offline'; tag.textContent = 'Offline'; }
+      if (graphsTag) { graphsTag.className = 'status-tag offline'; graphsTag.textContent = 'Offline'; }
+      if (win) win.classList.remove('is-present');
+      if (pulse) pulse.style.display = 'none';
+      if (label) { label.className = 'viz-state-label offline'; label.textContent = 'Receiver offline — Signal lost'; }
+      if (confSub) confSub.textContent = 'Confidence 0%';
+
+      const metStatus = document.getElementById('metStatus');
+      const metConf = document.getElementById('metConf');
+      const graphsStatusConf = document.getElementById('graphsStatusConf');
+      if (metStatus) metStatus.textContent = 'Offline';
+      if (metConf) metConf.textContent = '0%';
+      if (graphsStatusConf) graphsStatusConf.textContent = '0%';
+
+      setConfidenceRing(0);
+    }
+
+    function loadAlertConfig() {
+      const enabled = localStorage.getItem('alertEnabled');
+      const start = localStorage.getItem('alertStartTime');
+      const end = localStorage.getItem('alertEndTime');
+
+      const enabledBool = enabled !== null ? (enabled === 'true') : true;
+      const startVal = start || '12:00';
+      const endVal = end || '12:30';
+
+      if (document.getElementById('alertEnabled')) document.getElementById('alertEnabled').checked = enabledBool;
+      if (document.getElementById('alertStartTime')) document.getElementById('alertStartTime').value = startVal;
+      if (document.getElementById('alertEndTime')) document.getElementById('alertEndTime').value = endVal;
+
+      if (document.getElementById('alertEnabledTab')) document.getElementById('alertEnabledTab').checked = enabledBool;
+      if (document.getElementById('alertStartTimeTab')) document.getElementById('alertStartTimeTab').value = startVal;
+      if (document.getElementById('alertEndTimeTab')) document.getElementById('alertEndTimeTab').value = endVal;
+    }
+
+    function saveAlertConfig() {
+      const enabled = document.getElementById('alertEnabledTab')?.checked ?? document.getElementById('alertEnabled')?.checked ?? true;
+      const start = document.getElementById('alertStartTimeTab')?.value ?? document.getElementById('alertStartTime')?.value ?? '12:00';
+      const end = document.getElementById('alertEndTimeTab')?.value ?? document.getElementById('alertEndTime')?.value ?? '12:30';
+
+      localStorage.setItem('alertEnabled', enabled);
+      localStorage.setItem('alertStartTime', start);
+      localStorage.setItem('alertEndTime', end);
+    }
+
+    function syncAlertConfig(field) {
+      if (field === 'enabled') {
+        const val = document.getElementById('alertEnabledTab').checked;
+        if (document.getElementById('alertEnabled')) document.getElementById('alertEnabled').checked = val;
+      } else if (field === 'start') {
+        const val = document.getElementById('alertStartTimeTab').value;
+        if (document.getElementById('alertStartTime')) document.getElementById('alertStartTime').value = val;
+      } else if (field === 'end') {
+        const val = document.getElementById('alertEndTimeTab').value;
+        if (document.getElementById('alertEndTime')) document.getElementById('alertEndTime').value = val;
+      }
+      saveAlertConfig();
+    }
+
+    function parseMinutes(timeStr) {
+      if (!timeStr) return 0;
+      let parts = timeStr.split(':').map(Number);
+      let h = parts[0] || 0;
+      let m = parts[1] || 0;
+      return h * 60 + m;
+    }
+
+    async function generateTodaySummary() {
+      const statusEl = document.getElementById('reportStatusText');
+      if (statusEl) statusEl.textContent = 'Generating 24-hr summary…';
+      try {
+        const res = await fetch('/api/reports/generate_summary', { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          if (statusEl) statusEl.textContent = `Generated: ${data.summary_file}`;
+          appendLog(`Generated 24-hour summary: ${data.summary_file}`, 'success');
+          fetchReportsList();
+          window.location.href = `/api/reports/download/${data.summary_file}`;
+        } else {
+          if (statusEl) statusEl.textContent = 'Generation failed';
+        }
+      } catch (e) {
+        if (statusEl) statusEl.textContent = 'Report error';
+      }
+    }
+
+    async function downloadLatestReport() {
+      try {
+        const res = await fetch('/api/reports');
+        if (res.ok) {
+          const reports = await res.json();
+          if (reports.length > 0) {
+            const fname = reports[0].filename;
+            window.location.href = `/api/reports/download/${fname}`;
+            appendLog(`Downloading report: ${fname}`, 'info');
+          } else {
+            alert('No reports generated yet. Click "Generate Today\'s 24-Hr Excel Summary" first!');
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function fetchReportsList() {
+      const tbody = document.getElementById('reportsTableBody');
+      if (!tbody) return;
+      try {
+        const res = await fetch('/api/reports');
+        if (!res.ok) return;
+        const reports = await res.json();
+        if (reports.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--muted);">No reports generated yet. Click "Generate Today\'s 24-Hr Excel Summary" to create one.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = reports.map(r => `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 10px; font-weight: 500;">${r.filename}</td>
+            <td style="padding: 10px;"><span class="status-tag ${r.type.includes('Summary') ? 'present' : 'absent'}">${r.type}</span></td>
+            <td style="padding: 10px; color: var(--muted);">${r.size_kb} KB</td>
+            <td style="padding: 10px; color: var(--muted);">${r.modified}</td>
+            <td style="padding: 10px; text-align: right;">
+              <a href="/api/reports/download/${r.filename}" class="btn" style="padding: 4px 10px; font-size: 11px; text-decoration: none; display: inline-block;">📥 Download</a>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--gold);">Failed to load reports list.</td></tr>';
+      }
+    }
+
+    let lastAlertLoggedTime = 0;
+    function checkRestrictedHoursAlert(state) {
+      const enabled = document.getElementById('alertEnabled')?.checked || document.getElementById('alertEnabledTab')?.checked;
+      const banner = document.getElementById('restrictedAlertBanner');
+      const bannerTab = document.getElementById('restrictedAlertBannerTab');
+
+      if (!enabled || state !== 1) {
+        if (banner) banner.style.display = 'none';
+        if (bannerTab) bannerTab.style.display = 'none';
+        return;
+      }
+
+      const startTime = document.getElementById('alertStartTime')?.value || document.getElementById('alertStartTimeTab')?.value || '12:00';
+      const endTime = document.getElementById('alertEndTime')?.value || document.getElementById('alertEndTimeTab')?.value || '12:30';
+
+      const now = new Date();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      let sMin = parseMinutes(startTime);
+      let eMin = parseMinutes(endTime);
+
+      function inRange(cur, start, end) {
+        if (start <= end) return cur >= start && cur <= end;
+        return cur >= start || cur <= end;
+      }
+
+      let isRestricted = inRange(currentMinutes, sMin, eMin) ||
+                         inRange(currentMinutes, (sMin + 720) % 1440, (eMin + 720) % 1440);
+
+      if (isRestricted) {
+        const msgText = `🚨 RESTRICTED HOURS ALERT: Presence detected during break period (${startTime} - ${endTime})!`;
+        if (banner) { banner.style.display = 'flex'; document.getElementById('alertBannerText').textContent = msgText; }
+        if (bannerTab) { bannerTab.style.display = 'flex'; document.getElementById('alertBannerTextTab').textContent = msgText; }
+
+        if (Date.now() - lastAlertLoggedTime > 10000) {
+          const alertBox = document.getElementById('alertHistoryLogBox');
+          if (alertBox) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+              <span class="log-time">[${now.toLocaleTimeString()}]</span>
+              <span class="log-tag-warn">VIOLATION</span>
+              <span class="log-text">Room presence detected during restricted break time (${startTime} - ${endTime}).</span>
+            `;
+            alertBox.appendChild(entry);
+            alertBox.scrollTop = alertBox.scrollHeight;
+          }
+
+          lastAlertLoggedTime = Date.now();
+        }
+      } else {
+        if (banner) banner.style.display = 'none';
+        if (bannerTab) bannerTab.style.display = 'none';
+      }
+    }
+
+    function handlePrediction(d) {
+      if (lastCsiTimestamp === 0 || Date.now() - lastCsiTimestamp > 3500 || d.state === -1 || d.label === 'Offline') {
+        setOfflinePresenceUI();
+        return;
+      }
+      const state = d.state !== undefined ? d.state : (d.count > 0 ? 1 : 0);
+      checkRestrictedHoursAlert(state);
+      const conf = Math.round(d.confidence || 0);
+      const timeStr = new Date().toLocaleTimeString();
+
+      const tag = document.getElementById('liveTag');
+      const graphsTag = document.getElementById('graphsStatusTag');
+      const win = document.getElementById('presenceWindow');
+      const pulse = document.getElementById('pulseRing');
+      const label = document.getElementById('stateLabel');
+      const confSub = document.getElementById('confSubLabel');
+
+      if (state === 1) {
+        tag.className = 'status-tag present';
+        tag.textContent = 'Present';
+        graphsTag.className = 'status-tag present';
+        graphsTag.textContent = 'Present';
+        win.classList.add('is-present');
+        pulse.style.display = 'block';
+        label.className = 'viz-state-label present';
+        label.textContent = 'Someone is present';
+        document.getElementById('metStatus').textContent = 'Present';
+      } else {
+        tag.className = 'status-tag absent';
+        tag.textContent = 'Empty';
+        graphsTag.className = 'status-tag absent';
+        graphsTag.textContent = 'Empty';
+        win.classList.remove('is-present');
+        pulse.style.display = 'none';
+        label.className = 'viz-state-label absent';
+        label.textContent = 'The room is quiet';
+        document.getElementById('metStatus').textContent = 'Empty';
+      }
+
+      confSub.textContent = `Confidence ${conf}%`;
+      if (lastState !== null && lastState !== state) {
+        document.getElementById('metTime').textContent = timeStr;
+      } else if (lastState === null) {
+        document.getElementById('metTime').textContent = timeStr;
+      }
+      lastState = state;
+      document.getElementById('metConf').textContent = `${conf}%`;
+      document.getElementById('graphsStatusConf').textContent = `${conf}%`;
+      setConfidenceRing(conf);
+
+      confidenceHistory.shift();
+      confidenceHistory.push(conf);
+
+      renderCharts();
+    }
+
+    function handleTelemetry(d) {
+      lastCsiTimestamp = Date.now();
+      const badge = document.getElementById('statusBadge');
+      const badgeText = document.getElementById('statusBadgeText');
+      if (badge && badgeText) {
+        badge.className = 'status-badge';
+        badgeText.textContent = 'Connected';
+      }
+
+      if (d.rssi) {
+        document.getElementById('valRSSI').textContent = `${d.rssi} dBm`;
+        csiRssiHistory.shift();
+        csiRssiHistory.push(d.rssi);
+      }
+
+      if (d.csi && d.csi.length >= 4) {
+        let amps = [];
+        for (let i = 0; i < d.csi.length - 1; i += 2) {
+          let I = d.csi[i];
+          let Q = d.csi[i + 1];
+          amps.push(Math.sqrt(I * I + Q * Q));
+        }
+        latestCsiAmps = amps;
+
+        // Raw Mean CSI Subcarrier Amplitude
+        const meanAmp = amps.reduce((a, b) => a + b, 0) / amps.length;
+        csiMeanAmpHistory.shift();
+        csiMeanAmpHistory.push(meanAmp);
+
+        // Moving Average CSI Amplitude (10-packet window)
+        const windowSize = 10;
+        const slice = csiMeanAmpHistory.slice(-windowSize);
+        const maVal = slice.reduce((a, b) => a + b, 0) / slice.length;
+        csiMovingAvgHistory.shift();
+        csiMovingAvgHistory.push(maVal);
+
+        // Subcarrier Standard Deviation (Noise metric)
+        const variance = amps.reduce((a, b) => a + Math.pow(b - meanAmp, 2), 0) / amps.length;
+        const stdDev = Math.sqrt(variance);
+        csiStdDevHistory.shift();
+        csiStdDevHistory.push(stdDev);
+      }
+
+      packetTimestamps.push(Date.now());
+      packetTimestamps = packetTimestamps.filter(t => Date.now() - t < 5000);
+      const pps = (packetTimestamps.length / 5).toFixed(1);
+      document.getElementById('valPPS').textContent = `${pps} Hz`;
+
+      renderCharts();
+    }
+
+    // ── Chart rendering: smooth spline, gradient stroke, gradient fill ──
+    const chartGeom = {};
+
+    function drawLineChart(canvasId, data, strokeColor, fillColor, minVal, maxVal, yUnit = '', accent2) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const W = rect.width;
+      const H = rect.height;
+      const padding = { top: 18, right: 16, bottom: 30, left: 52 };
+
+      ctx.clearRect(0, 0, W, H);
+
+      const chartW = W - padding.left - padding.right;
+      const chartH = H - padding.top - padding.bottom;
+
+      // grid + axes
+      ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#7B8794';
+      ctx.font = '10px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+
+      const ySteps = 4;
+      for (let i = 0; i <= ySteps; i++) {
+        const y = Math.round(padding.top + chartH - (i / ySteps) * chartH) + 0.5;
+        const val = (minVal + (i / ySteps) * (maxVal - minVal)).toFixed(0);
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + chartW, y);
+        ctx.stroke();
+        ctx.fillText(`${val}${yUnit}`, padding.left - 10, y);
+      }
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('-50s', padding.left, padding.top + chartH + 10);
+      ctx.fillText('-25s', padding.left + chartW / 2, padding.top + chartH + 10);
+      ctx.fillText('Now', padding.left + chartW, padding.top + chartH + 10);
+
+      // points
+      const pts = data.map((val, i) => {
+        const x = padding.left + (i / (data.length - 1)) * chartW;
+        const clampVal = Math.max(minVal, Math.min(maxVal, val));
+        const y = padding.top + chartH - ((clampVal - minVal) / (maxVal - minVal || 1)) * chartH;
+        return { x, y, v: val };
+      });
+
+      chartGeom[canvasId] = { pts, padding, chartW, chartH, unit: yUnit, isSpectrum: false };
+
+      const spline = () => {
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i], p1 = pts[i + 1];
+          const cx = (p0.x + p1.x) / 2;
+          ctx.bezierCurveTo(cx, p0.y, cx, p1.y, p1.x, p1.y);
+        }
+      };
+
+      // fill
+      spline();
+      ctx.lineTo(pts[pts.length - 1].x, padding.top + chartH);
+      ctx.lineTo(pts[0].x, padding.top + chartH);
+      ctx.closePath();
+      const fg = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+      fg.addColorStop(0, fillColor);
+      fg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = fg;
+      ctx.fill();
+
+      // stroke
+      const sg = ctx.createLinearGradient(padding.left, 0, padding.left + chartW, 0);
+      sg.addColorStop(0, accent2 || strokeColor);
+      sg.addColorStop(1, strokeColor);
+      spline();
+      ctx.strokeStyle = sg;
+      ctx.lineWidth = 2.25;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.shadowColor = strokeColor;
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // head dot
+      const last = pts[pts.length - 1];
+      ctx.beginPath();
+      ctx.arc(last.x, last.y, 3.2, 0, Math.PI * 2);
+      ctx.fillStyle = strokeColor;
+      ctx.shadowColor = strokeColor;
+      ctx.shadowBlur = 12;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // hover marker
+      const hv = canvas._hoverIdx;
+      if (hv != null && pts[hv]) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+        ctx.beginPath();
+        ctx.moveTo(pts[hv].x, padding.top);
+        ctx.lineTo(pts[hv].x, padding.top + chartH);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(pts[hv].x, pts[hv].y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+      }
+    }
+
+    function drawSpectrumChart(canvasId, data, strokeColor, fillColor, minVal, maxVal, yUnit = '', accent2, xUnit = 'Subcarrier #') {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const W = rect.width;
+      const H = rect.height;
+      const padding = { top: 18, right: 16, bottom: 30, left: 52 };
+
+      ctx.clearRect(0, 0, W, H);
+
+      const chartW = W - padding.left - padding.right;
+      const chartH = H - padding.top - padding.bottom;
+
+      // grid + axes
+      ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#7B8794';
+      ctx.font = '10px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+
+      const ySteps = 4;
+      for (let i = 0; i <= ySteps; i++) {
+        const y = Math.round(padding.top + chartH - (i / ySteps) * chartH) + 0.5;
+        const val = (minVal + (i / ySteps) * (maxVal - minVal)).toFixed(1);
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + chartW, y);
+        ctx.stroke();
+        ctx.fillText(`${val}${yUnit}`, padding.left - 10, y);
+      }
+
+      const nSub = data ? data.length : 64;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`${xUnit}0`, padding.left, padding.top + chartH + 10);
+      ctx.fillText(`${xUnit}${Math.round(nSub / 2)}`, padding.left + chartW / 2, padding.top + chartH + 10);
+      ctx.fillText(`${xUnit}${nSub - 1}`, padding.left + chartW, padding.top + chartH + 10);
+
+      if (!data || data.length < 2) return;
+
+      // points
+      const pts = data.map((val, i) => {
+        const x = padding.left + (i / (data.length - 1)) * chartW;
+        const clampVal = Math.max(minVal, Math.min(maxVal, val));
+        const y = padding.top + chartH - ((clampVal - minVal) / (maxVal - minVal || 1)) * chartH;
+        return { x, y, v: val, index: i };
+      });
+
+      chartGeom[canvasId] = { pts, padding, chartW, chartH, unit: yUnit, isSpectrum: true };
+
+      const spline = () => {
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p0 = pts[i], p1 = pts[i + 1];
+          const cx = (p0.x + p1.x) / 2;
+          ctx.bezierCurveTo(cx, p0.y, cx, p1.y, p1.x, p1.y);
+        }
+      };
+
+      // fill
+      spline();
+      ctx.lineTo(pts[pts.length - 1].x, padding.top + chartH);
+      ctx.lineTo(pts[0].x, padding.top + chartH);
+      ctx.closePath();
+      const fg = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+      fg.addColorStop(0, fillColor);
+      fg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = fg;
+      ctx.fill();
+
+      // stroke
+      const sg = ctx.createLinearGradient(padding.left, 0, padding.left + chartW, 0);
+      sg.addColorStop(0, accent2 || strokeColor);
+      sg.addColorStop(1, strokeColor);
+      spline();
+      ctx.strokeStyle = sg;
+      ctx.lineWidth = 2.25;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.shadowColor = strokeColor;
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // hover marker
+      const hv = canvas._hoverIdx;
+      if (hv != null && pts[hv]) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+        ctx.beginPath();
+        ctx.moveTo(pts[hv].x, padding.top);
+        ctx.lineTo(pts[hv].x, padding.top + chartH);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(pts[hv].x, pts[hv].y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+      }
+    }
+
+    function drawDualLineChart(canvasId, rawData, maData, rawColor, maColor, minVal, maxVal, yUnit = '') {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const W = rect.width;
+      const H = rect.height;
+      const padding = { top: 18, right: 16, bottom: 30, left: 52 };
+
+      ctx.clearRect(0, 0, W, H);
+
+      const chartW = W - padding.left - padding.right;
+      const chartH = H - padding.top - padding.bottom;
+
+      // grid + axes
+      ctx.strokeStyle = 'rgba(255,255,255,0.055)';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = '#7B8794';
+      ctx.font = '10px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+
+      const ySteps = 4;
+      for (let i = 0; i <= ySteps; i++) {
+        const y = Math.round(padding.top + chartH - (i / ySteps) * chartH) + 0.5;
+        const val = (minVal + (i / ySteps) * (maxVal - minVal)).toFixed(1);
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + chartW, y);
+        ctx.stroke();
+        ctx.fillText(`${val}${yUnit}`, padding.left - 10, y);
+      }
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('-50s', padding.left, padding.top + chartH + 10);
+      ctx.fillText('-25s', padding.left + chartW / 2, padding.top + chartH + 10);
+      ctx.fillText('Now', padding.left + chartW, padding.top + chartH + 10);
+
+      // Raw points
+      const rawPts = rawData.map((val, i) => {
+        const x = padding.left + (i / (rawData.length - 1)) * chartW;
+        const clampVal = Math.max(minVal, Math.min(maxVal, val));
+        const y = padding.top + chartH - ((clampVal - minVal) / (maxVal - minVal || 1)) * chartH;
+        return { x, y, v: val };
+      });
+
+      // MA points
+      const maPts = maData.map((val, i) => {
+        const x = padding.left + (i / (maData.length - 1)) * chartW;
+        const clampVal = Math.max(minVal, Math.min(maxVal, val));
+        const y = padding.top + chartH - ((clampVal - minVal) / (maxVal - minVal || 1)) * chartH;
+        return { x, y, v: val };
+      });
+
+      chartGeom[canvasId] = { pts: maPts, padding, chartW, chartH, unit: yUnit, isSpectrum: false };
+
+      // 1. Raw CSI Mean line (background thin line)
+      ctx.beginPath();
+      ctx.moveTo(rawPts[0].x, rawPts[0].y);
+      for (let i = 1; i < rawPts.length; i++) {
+        ctx.lineTo(rawPts[i].x, rawPts[i].y);
+      }
+      ctx.strokeStyle = rawColor;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // 2. Moving Average line (foreground vibrant line)
+      const spline = () => {
+        ctx.beginPath();
+        ctx.moveTo(maPts[0].x, maPts[0].y);
+        for (let i = 0; i < maPts.length - 1; i++) {
+          const p0 = maPts[i], p1 = maPts[i + 1];
+          const cx = (p0.x + p1.x) / 2;
+          ctx.bezierCurveTo(cx, p0.y, cx, p1.y, p1.x, p1.y);
+        }
+      };
+
+      spline();
+      ctx.lineTo(maPts[maPts.length - 1].x, padding.top + chartH);
+      ctx.lineTo(maPts[0].x, padding.top + chartH);
+      ctx.closePath();
+      const fg = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+      fg.addColorStop(0, 'rgba(73, 209, 138, 0.18)');
+      fg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = fg;
+      ctx.fill();
+
+      spline();
+      ctx.strokeStyle = maColor;
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.shadowColor = maColor;
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // hover marker
+      const hv = canvas._hoverIdx;
+      if (hv != null && maPts[hv]) {
+        ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+        ctx.beginPath();
+        ctx.moveTo(maPts[hv].x, padding.top);
+        ctx.lineTo(maPts[hv].x, padding.top + chartH);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(maPts[hv].x, maPts[hv].y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+      }
+    }
+
+    function attachTooltip(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      const tip = document.getElementById('tip-' + canvasId);
+      if (!canvas || !tip) return;
+
+      canvas.addEventListener('mousemove', (e) => {
+        const g = chartGeom[canvasId];
+        if (!g) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        let best = 0, bestD = Infinity;
+        g.pts.forEach((p, i) => { const d = Math.abs(p.x - x); if (d < bestD) { bestD = d; best = i; } });
+        canvas._hoverIdx = best;
+        const p = g.pts[best];
+        tip.style.left = p.x + 'px';
+        tip.style.top = p.y + 'px';
+        tip.style.opacity = '1';
+        if (g.isSpectrum) {
+          tip.textContent = `Subcarrier #${best}: ${p.v.toFixed(2)}${g.unit.trim()}`;
+        } else {
+          const secondsAgo = g.pts.length - 1 - best;
+          tip.textContent = `${p.v.toFixed(1)}${g.unit.trim()} · -${secondsAgo}s`;
+        }
+        renderCharts();
+      });
+
+      canvas.addEventListener('mouseleave', () => {
+        canvas._hoverIdx = null;
+        tip.style.opacity = '0';
+        renderCharts();
+      });
+    }
+
+    function renderCharts() {
+      if (!document.getElementById('panel-graphs').classList.contains('active')) return;
+      const minRssi = Math.min(...csiRssiHistory) - 5;
+      const maxRssi = Math.max(...csiRssiHistory) + 5;
+
+      drawLineChart('csiSignalChart', csiRssiHistory, '#F5B55E', 'rgba(245,181,94,0.22)', minRssi, maxRssi, ' dBm', '#FFD9A0');
+      drawLineChart('confidenceChart', confidenceHistory, '#49D18A', 'rgba(73,209,138,0.22)', 0, 100, '%', '#5B8CFF');
+
+      const minMean = Math.min(...csiMovingAvgHistory) - 2;
+      const maxMean = Math.max(...csiMovingAvgHistory) + 2;
+      drawLineChart('csiSubcarrierAmpChart', csiMovingAvgHistory, '#49D18A', 'rgba(73,209,138,0.22)', Math.max(0, minMean), Math.max(5, maxMean), '', '#5B8CFF');
+
+      const minStd = Math.min(...csiStdDevHistory) - 1;
+      const maxStd = Math.max(...csiStdDevHistory) + 1;
+      drawLineChart('csiSubcarrierStdDevChart', csiStdDevHistory, '#F5B55E', 'rgba(245,181,94,0.22)', Math.max(0, minStd), Math.max(3, maxStd), '', '#FFD9A0');
+    }
+
+    window.addEventListener('resize', renderCharts);
+
+    // Init
+    attachTooltip('csiSignalChart');
+    attachTooltip('confidenceChart');
+    attachTooltip('csiSubcarrierAmpChart');
+    attachTooltip('csiSubcarrierStdDevChart');
+    loadAlertConfig();
+    initWebSocket();
+    renderCharts();
+    setConfidenceRing(0);
+
+    // Receiver signal activity watchdog (3.5s timeout)
+    setInterval(() => {
+      const now = Date.now();
+      packetTimestamps = packetTimestamps.filter(t => now - t < 5000);
+      const pps = (packetTimestamps.length / 5).toFixed(1);
+      const ppsEl = document.getElementById('valPPS');
+      if (ppsEl) ppsEl.textContent = `${pps} Hz`;
+
+      if (lastCsiTimestamp === 0 || (now - lastCsiTimestamp > 3500)) {
+        const badge = document.getElementById('statusBadge');
+        const badgeText = document.getElementById('statusBadgeText');
+        const rssiEl = document.getElementById('valRSSI');
+        if (badge && badgeText) {
+          badge.className = 'status-badge offline';
+          badgeText.textContent = 'Disconnected';
+        }
+        if (rssiEl) {
+          rssiEl.textContent = 'Offline';
+        }
+        setOfflinePresenceUI();
+      }
+    }, 1000);
+  </script>
+
+</body>
+
+</html>
