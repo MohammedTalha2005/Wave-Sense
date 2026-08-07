@@ -8,7 +8,11 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-IDF_DIR="$HOME/Wifi_Detection/ESP32_Firmware/esp-idf"
+if [ -f "$HOME/Wifi_Detection/ESP32_Firmware/esp-idf/export.sh" ]; then
+    IDF_DIR="$HOME/Wifi_Detection/ESP32_Firmware/esp-idf"
+else
+    IDF_DIR="$SCRIPT_DIR/ESP32_Firmware/esp-idf"
+fi
 IDF_VERSION="v5.4"
 
 TX_PORT="/dev/ttyACM1"

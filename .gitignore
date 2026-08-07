@@ -9,7 +9,8 @@ __pycache__/
 *$py.class
 .pytest_cache/
 
-# ESP-IDF Build Artifacts
+# ESP-IDF Build Artifacts & Toolchain
+ESP32_Firmware/
 esp32/receiver/build/
 esp32/receiver/sdkconfig.old
 

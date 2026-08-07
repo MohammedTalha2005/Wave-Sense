@@ -35,7 +35,7 @@ WifiIdentification/
 
 ## ⚡ Quick Start Guide for New Users
 
-### Step 1: Install Python Dependencies
+### Step 1: Install Python Dependencies (Only Once)
 Ensure Python 3.10+ is installed on your host system:
 ```bash
 cd ~/WifiIdentification
@@ -43,8 +43,21 @@ pip install -r requirements.txt
 ```
 
 ---
+#### Option A: Automatic Interactive Script (Recommended)
+```bash
+cd ~/WifiIdentification
+bash setup_esp.sh
+```
 
-### Step 2: Launch the WaveSense Deep Learning Server
+#### Option B: Manual Command (using /dev/ttyACM0 or /dev/ttyUSB0)
+```bash
+source ~/Wifi_Detection/ESP32_Firmware/esp-idf/export.sh
+cd ~/WifiIdentification/esp32/receiver
+idf.py -p /dev/ttyACM0 build flash monitor
+```
+> **Automatic IP Discovery:** Once booted, the ESP32 listens for the server's UDP beacon on port `8089`, updates its target URL dynamically, and stores the IP in NVS Flash.
+
+### Step 3: Launch the WaveSense Deep Learning Server
 Run the primary backend script:
 ```bash
 python3 cnn_lstm/run_cnn_lstm.py
@@ -55,14 +68,7 @@ python3 cnn_lstm/run_cnn_lstm.py
 
 ---
 
-### Step 3: Flash ESP32 Receiver Firmware (Hardware Setup)
-Set up the ESP-IDF environment and flash your connected ESP32 receiver board (`/dev/ttyUSB0` or `/dev/ttyACM0`):
-```bash
-source setup_esp.sh
-cd esp32/receiver
-idf.py -p /dev/ttyUSB0 build flash monitor
-```
-> **Automatic IP Discovery:** Once booted, the ESP32 listens for the server's UDP beacon on port `8089`, updates its target URL dynamically, and stores the IP in NVS Flash.
+
 
 ---
 
