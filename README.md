@@ -24,9 +24,12 @@ WifiIdentification/
 │   ├── dashboard/            # Web User Interface (presence.html)
 │   ├── server/               # Deep Learning Engine, FastAPI Gateway & Daily Logger
 │   └── run_cnn_lstm.py       # Primary System Launcher
-├── esp32/                    # ESP32 Receiver C Firmware Subsystem
+├── esp32/                    # ESP32 C Firmware Source Subsystem
+│   └── receiver/             # ESP32 Receiver Firmware (main.c, CMakeLists.txt)
+├── ESP32_Firmware/           # ESP-IDF SDK (Toolchain & Build Environment)
 ├── reports/                  # 24/7 Daily Telemetry Logs & Excel Summaries
 ├── data/                     # Labeled Training Datasets
+├── setup_esp.sh              # ESP-IDF Auto-Setup & Flashing Script
 ├── README.md                 # System Startup Guide
 └── requirements.txt          # Python Package Dependencies
 ```
